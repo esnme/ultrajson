@@ -40,7 +40,8 @@ jobs:
           # prefer it via the higher platform tag). This batch also carries
           # musllinux and the i686 build (i686 has no manylinux_2_28 image, so
           # it stays manylinux2014 - see CIBW_MANYLINUX_I686_IMAGE below).
-          - os: ubuntu-latest
+          # TODO Pinned pending https://github.com/actions/runner-images/issues/14790
+          - os: ubuntu-24.04
             cibw_arch: "x86_64 i686"
             manylinux_image: manylinux_2_28
           - os: ubuntu-24.04-arm
