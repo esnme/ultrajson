@@ -31,10 +31,6 @@ jobs:
         include:
           - { python-version: "pypy3.12", os: windows-latest }
           - { python-version: "pypy3.12", os: macos-latest }
-          - { python-version: "pypy3.11", os: windows-latest }
-          - { python-version: "pypy3.11", os: macos-latest }
-          - { python-version: "3.14", os: windows-latest }
-          - { python-version: "3.14", os: macos-latest }
           - { python-version: "3.15", os: windows-latest }
           - { python-version: "3.15", os: macos-latest }
 
