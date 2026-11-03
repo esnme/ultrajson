@@ -16,22 +16,19 @@ jobs:
       matrix:
         python-version:
           - "graalpy-25"
+          - "pypy3.12"
           - "pypy3.11"
           - "3.15t"
           - "3.15"
           - "3.14t"
           - "3.14"
-          - "3.13t"
           - "3.13"
           - "3.12"
           - "3.11"
-          - "3.10"
         os: [ubuntu-latest]
         include:
-          - { python-version: "pypy-3.11", os: windows-latest }
-          - { python-version: "pypy-3.11", os: macos-latest }
-          - { python-version: "3.14", os: windows-latest }
-          - { python-version: "3.14", os: macos-latest }
+          - { python-version: "pypy3.12", os: windows-latest }
+          - { python-version: "pypy3.12", os: macos-latest }
           - { python-version: "3.15", os: windows-latest }
           - { python-version: "3.15", os: macos-latest }
 
@@ -65,7 +62,7 @@ jobs:
           python -m pytest
 
       - name: Test with coverage
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.python-version == '3.10' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.python-version == '3.15' }}
         run: |
           pip install -e .
           pip install coverage setuptools_scm
@@ -74,7 +71,7 @@ jobs:
           ./scripts/coverage.sh
 
       - name: Upload coverage
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.python-version == '3.10' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.python-version == '3.15' }}
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           plugins: pycoverage
