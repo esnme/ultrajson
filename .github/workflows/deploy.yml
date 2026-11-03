@@ -17,8 +17,8 @@ permissions:
   contents: read
 
 env:
-  EXPECTED_DISTS: 119
-  EXPECTED_WHEELS_SHA: 62584b2685c7bf59eb943cf657fbbbae7e24469a
+  EXPECTED_DISTS: 125
+  EXPECTED_WHEELS_SHA: 68b83bf94e32e7fa7aa7a696f25ef4d7b89b6478
   FORCE_COLOR: 1
 
 jobs:
@@ -38,8 +38,8 @@ jobs:
           # Linux is built in two batches so we ship both wheel variants (#741).
           # Batch 1: manylinux_2_28 (newer gcc, ~+8% faster; modern systems
           # prefer it via the higher platform tag). This batch also carries
-          # musllinux and the i686 build (i686 has no manylinux_2_28 image, so
-          # it stays manylinux2014 - see CIBW_MANYLINUX_I686_IMAGE below).
+          # musllinux and the i686 build (i686 stays manylinux2014 - see
+          # CIBW_MANYLINUX_I686_IMAGE below).
           # TODO Pinned pending https://github.com/actions/runner-images/issues/14790
           - os: ubuntu-24.04
             cibw_arch: "x86_64 i686"
@@ -48,15 +48,16 @@ jobs:
             cibw_arch: aarch64
             manylinux_image: manylinux_2_28
           # Batch 2: manylinux2014 (glibc 2.17 compatibility) for x86_64 and
-          # aarch64 only; musllinux is skipped as it's already built in batch 1.
+          # aarch64 only; musllinux is skipped as it's already built in batch 1,
+          # and so are PyPy and GraalPy 3.13 (not in the manylinux2014 images).
           - os: ubuntu-latest
             cibw_arch: x86_64
             manylinux_image: manylinux2014
-            cibw_skip_extra: "*-musllinux_*"
+            cibw_skip_extra: "*-musllinux_* pp* gp313*"
           - os: ubuntu-24.04-arm
             cibw_arch: aarch64
             manylinux_image: manylinux2014
-            cibw_skip_extra: "*-musllinux_*"
+            cibw_skip_extra: "*-musllinux_* pp* gp313*"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: git fetch --prune --unshallow
@@ -68,7 +69,7 @@ jobs:
 
       # https://github.com/pypa/cibuildwheel
       - name: Build wheels
-        uses: pypa/cibuildwheel@e090b81e30c4d855ea63bf4b6e59204c09a101ae # v4.2.1
+        uses: pypa/cibuildwheel@f9b966cfadf4109556cadc5bb39ddb72d0ce664e # v4.3.5
         with:
           output-dir: dist
         # Options are supplied via environment variables:
@@ -80,17 +81,14 @@ jobs:
           # Empty (and ignored) on Windows/macOS.
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux_image }}
-          CIBW_MANYLINUX_PYPY_X86_64_IMAGE: ${{ matrix.manylinux_image }}
-          CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: ${{ matrix.manylinux_image }}
-          # i686 has no manylinux_2_28 image, so it's always manylinux2014.
+          # i686 stays manylinux2014 (PyPy i686 is skipped: PyPy 8 needs manylinux_2_28).
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
           # Include latest Python beta.
           CIBW_ENABLE: cpython-prerelease pypy graalpy
           # Skip EOL Python versions and macOS x86_64 GraalPy, which times out
           # during first-time interpreter discovery on GitHub Actions runners.
-          # The manylinux2014 batch also skips musllinux (built in the 2_28 batch).
-          CIBW_SKIP: "gp311* gp*-macosx_x86_64 ${{ matrix.cibw_skip_extra }}"
+          # The manylinux2014 batch also skips musllinux, PyPy and GraalPy 3.13 (2_28 batch).
+          CIBW_SKIP: "gp311* gp*-macosx_x86_64 pp*-manylinux_i686 ${{ matrix.cibw_skip_extra }}"
           # Run the test suite after each build.
           CIBW_TEST_REQUIRES: "pytest"
           CIBW_TEST_COMMAND: pytest {package}/tests
