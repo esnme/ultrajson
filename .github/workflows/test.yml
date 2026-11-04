@@ -105,9 +105,13 @@ jobs:
           '
 
   success:
+    if: always()
     needs: [test, cross-arch]
     runs-on: ubuntu-latest
     name: test successful
     steps:
       - name: Success
-        run: echo Test successful
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+          CROSS_ARCH_RESULT: ${{ needs.cross-arch.result }}
+        run: test "$TEST_RESULT" = "success" && test "$CROSS_ARCH_RESULT" = "success"
